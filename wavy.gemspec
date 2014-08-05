@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.version       = Wavy::VERSION
 
   s.summary       = "A simple templating engine for HTML."
-  s.description   = "Wavy is a simple templating engine for HTML."
+  s.description   = "Wavy is a simple templating engine for HTML – Inspired By Sass"
 
   s.authors       = ["Matthew Govaere"]
   s.email         = 'matthew.govaere@gmail.com'

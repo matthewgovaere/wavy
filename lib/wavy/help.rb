@@ -4,5 +4,5 @@ Description:
   Converts Wavy files to HTML
 
 Options:
-  -v, --version Prints Version
+  -v, --version Prints version
 "

@@ -1,3 +1,5 @@
+require 'fileutils'
+
 require 'wavy/utils'
 require 'wavy/nodes'
 require 'wavy/models'
@@ -17,7 +19,6 @@ module Wavy
 
     String @view
     String @config
-    String @filename
 
     # Creates a new Core
     #
@@ -29,18 +30,33 @@ module Wavy
       @config = config
       @save = save
       @config_root = File.expand_path(File.dirname(@config))
-      @filename = File.basename(@view)
     end
 
     # Reads configuration and view files. Begins parsing.
     def compile()
       begin
+
         @config = FILE_IMPORTER.load(@config, true)
+
         Wavy::Parsers::Import.load(@config, @config_root)
         Wavy::Parsers::Import.extract
-        
-        @view = FILE_IMPORTER.load(@view)
-        render(@view)
+
+        if File.directory?(@view)
+          Dir.glob(@view + "/**/*.wavy") do |template|
+            full_path = template.dup
+            full_path.slice! @view
+
+            filename = File.basename(template)
+
+            template = FILE_IMPORTER.load(template)
+            render(template, full_path)
+          end
+        else
+          filename = File.basename(@view)
+          template = FILE_IMPORTER.load(@view)
+          render(template, filename)
+        end
+
       rescue Exception => e
         puts e.message
       end
@@ -49,15 +65,30 @@ module Wavy
     # Saves parsed template.
     #
     # @param (String) view Content of the view
-    def render(view)
+    def render(view, filename)
       output = Wavy::Models::Template.new(view).parse
 
       if @save != false
-        filename = @filename.gsub("#{FILE_SUFFIX}", "")
+        filename = filename.gsub("#{FILE_SUFFIX}", "")
         path = File.expand_path(@save)
-        path = path + "/" + filename
+
+        if filename[0] == "/"
+          filename[0] = "" 
+        end
+
+        if path[-1,1] == "/"
+          path = path + filename
+        else
+          path = path + "/" + filename
+        end
 
         begin
+          dirname = File.dirname(path)
+          puts dirname
+          unless File.directory?(dirname)
+            FileUtils.mkdir_p(dirname)
+          end
+
           file = File.open(path, "w")
           file.write(output) 
         rescue IOError => e
