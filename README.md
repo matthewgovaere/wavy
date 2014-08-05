@@ -54,7 +54,7 @@ view.html.wavy
 
 #### Compile
 
-wavy <config> <template> <output_folder>
+wavy [config] [template] [output_folder]
 
 ```
 wavy main.wavy view.html.wavy ./
