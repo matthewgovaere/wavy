@@ -1,10 +1,28 @@
 # ~ Wavy
 
+[![Gem Version](https://badge.fury.io/rb/wavy.svg)](http://badge.fury.io/rb/wavy)
+
 A simple templating engine for HTML – Inspired by [Sass](http://sass-lang.com).
 
 ## Usage
 
+Install the gem
+
+```
+gem install wavy
+```
+
+#### Main
+
 _main.wavy
+
+```wavy
+@import "mixins"
+```
+
+#### Mixins
+
+_mixins.wavy
 
 ```wavy
 @mixin button($label, $class) {
@@ -20,6 +38,8 @@ _main.wavy
 }
 ```
 
+#### Template
+
 view.html.wavy
 
 ```wavy
@@ -32,7 +52,17 @@ view.html.wavy
 </div>
 ```
 
-Outputs: view.html
+#### Compile
+
+wavy <config> <template> <output_folder>
+
+```
+wavy main.wavy view.html.wavy ./
+```
+
+#### Output
+
+view.html
 
 ```html
 <div class="main">
