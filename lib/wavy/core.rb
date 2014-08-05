@@ -84,7 +84,7 @@ module Wavy
 
         begin
           dirname = File.dirname(path)
-          puts dirname
+
           unless File.directory?(dirname)
             FileUtils.mkdir_p(dirname)
           end
