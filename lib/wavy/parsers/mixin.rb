@@ -29,7 +29,7 @@ module Wavy
       # @param (String) data Content
       # @param (String|Boolean) path Template path
       def self.definedTemplates(data, path = false)
-        pattern = /(@include)\s\"(.*)\"/
+        pattern = /(@import)\s\"(.*)\"/
         matches = data.scan(pattern)
 
         if matches.length > 0
@@ -47,19 +47,36 @@ module Wavy
 
                 Wavy::Models::Mixins.addTemplate(name, mixin_node)
               else
-                file_pattern = /(#{file})\..*/
+                imported_path_file = File.basename(file)
+
+                if imported_path_file[0] == "_"
+                  imported_path_file[0] = ""
+                else
+                  imported_path_file = file
+                end
+
+                file_pattern = /(#{imported_path_file})\..*/
                 file_dir = file.scan(/(.*)\//)
 
                 if file_dir[0]
-                  Dir.glob(base_dir + "/" + file_dir[0][0] + "/*") do |filename|
-                    file_matches = filename.scan(file_pattern)
+                  Dir.glob(base_dir + "/" + file_dir[0][0] + "/*") do |file_path|
+                    filename = File.basename(file_path)
+                    
+                    if filename[0] == "_"
+                      filename[0] = ""
+
+                      check_file_path = File.dirname(file_path) + "/" + filename
+                    else
+                      check_file_path = File.dirname(file_path) + "/" + filename
+                    end
+
+                    file_matches = check_file_path.scan(file_pattern)
 
                     if file_matches.length > 0
                       file_matches.each do |file_match|
                         file_match = file_match[0]
-                        puts filename
 
-                        content = FILE_IMPORTER.load(filename)
+                        content = FILE_IMPORTER.load(file_path)
                         mixin_node = Wavy::Nodes::Mixin.new(name, content, false)
 
                         Wavy::Models::Mixins.addTemplate(name, mixin_node)
@@ -92,9 +109,9 @@ module Wavy
 
       # Finds all included mixin functions.
       #
-      # @param (String) data Content
+      # @param (String) template Content
       #
-      # @return (String) data Parsed content
+      # @return (String) template Parsed content
       def self.parseFunctions(template)
         # Search for mixin includes
         pattern = /(@include)\s(.*)\((.*)\)/
@@ -142,7 +159,7 @@ module Wavy
       # @return (String) data Parsed content
       def self.parseTemplates(template, path)
         # Search for mixin includes
-        pattern = /(@include)\s\"(.*)\"/
+        pattern = /(@import)\s\"(.*)\"/
         matches = template.scan(pattern)
 
         mixins = Wavy::Models::Mixins.getTemplates
@@ -158,7 +175,7 @@ module Wavy
               content = parse(content, path)
 
               # Find mixin string to replace
-              find = "@include \"#{match[1]}\""
+              find = "@import \"#{match[1]}\""
               template = template.gsub(find, content)
             else
               Wavy::Parsers::Mixin.definedTemplates(template, path)

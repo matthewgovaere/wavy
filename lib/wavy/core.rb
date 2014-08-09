@@ -43,7 +43,7 @@ module Wavy
 
         if File.directory?(@view)
           template_dir = @view
-          
+
           Dir.glob(template_dir + "/**/*.wavy") do |template|
             file_path = File.expand_path(template)
             full_path = template.dup
@@ -67,37 +67,43 @@ module Wavy
 
     # Saves parsed template.
     #
-    # @param (String) view Content of the view
+    # @param (String) view Content of the template
+    # @param (String) filename The path and filename of the template
+    # @param (String) path Path to where the templates should be saved
     def render(view, filename, path)
       output = Wavy::Models::Template.new(view, path).parse
 
       if @save != false
-        filename = filename.gsub("#{FILE_SUFFIX}", "")
-        path = File.expand_path(@save)
+        file_path = filename.gsub("#{FILE_SUFFIX}", "")
+        file_name = File.basename(file_path)
 
-        if filename[0] == "/"
-          filename[0] = "" 
-        end
+        if file_name[0] != "_"
+          path = File.expand_path(@save)
 
-        if path[-1,1] == "/"
-          path = path + filename
-        else
-          path = path + "/" + filename
-        end
-
-        begin
-          dirname = File.dirname(path)
-
-          unless File.directory?(dirname)
-            FileUtils.mkdir_p(dirname)
+          if file_path[0] == "/"
+            file_path[0] = "" 
           end
 
-          file = File.open(path, "w")
-          file.write(output) 
-        rescue IOError => e
-          raise 'Could not save file.'
-        ensure
-          file.close unless file == nil
+          if path[-1,1] == "/"
+            path = path + file_path
+          else
+            path = path + "/" + file_path
+          end
+
+          begin
+            dirname = File.dirname(path)
+
+            unless File.directory?(dirname)
+              FileUtils.mkdir_p(dirname)
+            end
+
+            file = File.open(path, "w")
+            file.write(output) 
+          rescue IOError => e
+            raise 'Could not save file.'
+          ensure
+            file.close unless file == nil
+          end
         end
       else
         puts output
