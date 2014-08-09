@@ -39,29 +39,38 @@ module Wavy
 
             if path != false
               base_dir = File.expand_path(File.dirname(path))
-              file_pattern = /(#{file}).*/
-              file_dir = file.scan(/(.*)\//)
 
-              if file_dir[0]
-                Dir.glob(base_dir + "/" + file_dir[0][0] + "/*") do |filename|
-                  file_matches = filename.scan(file_pattern)
+              # Check if full filename was included
+              if File.file?(base_dir + "/" + file)
+                content = FILE_IMPORTER.load(base_dir + "/" + file)
+                mixin_node = Wavy::Nodes::Mixin.new(name, content, false)
 
-                  if file_matches.length > 0
-                    file_matches.each do |file_match|
-                      file_match = file_match[0]
-                      puts filename
-
-                      content = FILE_IMPORTER.load(filename)
-                      mixin_node = Wavy::Nodes::Mixin.new(name, content, false)
-
-                      Wavy::Models::Mixins.addTemplate(name, mixin_node)
-                    end
-                  else
-                    raise 'Could not find included file.'
-                  end
-                end
+                Wavy::Models::Mixins.addTemplate(name, mixin_node)
               else
-                raise 'Could not find included file.'
+                file_pattern = /(#{file})\..*/
+                file_dir = file.scan(/(.*)\//)
+
+                if file_dir[0]
+                  Dir.glob(base_dir + "/" + file_dir[0][0] + "/*") do |filename|
+                    file_matches = filename.scan(file_pattern)
+
+                    if file_matches.length > 0
+                      file_matches.each do |file_match|
+                        file_match = file_match[0]
+                        puts filename
+
+                        content = FILE_IMPORTER.load(filename)
+                        mixin_node = Wavy::Nodes::Mixin.new(name, content, false)
+
+                        Wavy::Models::Mixins.addTemplate(name, mixin_node)
+                      end
+                    else
+                      raise 'Could not find included file.'
+                    end
+                  end
+                else
+                  raise 'Could not find included file.'
+                end
               end
             end
           end
