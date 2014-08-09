@@ -42,19 +42,22 @@ module Wavy
         Wavy::Parsers::Import.extract
 
         if File.directory?(@view)
-          Dir.glob(@view + "/**/*.wavy") do |template|
+          template_dir = @view
+          
+          Dir.glob(template_dir + "/**/*.wavy") do |template|
+            file_path = File.expand_path(template)
             full_path = template.dup
-            full_path.slice! @view
+            full_path.slice! template_dir
 
             filename = File.basename(template)
 
             template = FILE_IMPORTER.load(template)
-            render(template, full_path)
+            render(template, full_path, file_path)
           end
         else
           filename = File.basename(@view)
           template = FILE_IMPORTER.load(@view)
-          render(template, filename)
+          render(template, filename, @view)
         end
 
       rescue Exception => e
@@ -65,8 +68,8 @@ module Wavy
     # Saves parsed template.
     #
     # @param (String) view Content of the view
-    def render(view, filename)
-      output = Wavy::Models::Template.new(view).parse
+    def render(view, filename, path)
+      output = Wavy::Models::Template.new(view, path).parse
 
       if @save != false
         filename = filename.gsub("#{FILE_SUFFIX}", "")

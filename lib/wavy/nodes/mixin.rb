@@ -4,21 +4,24 @@ module Wavy
 
     class Mixin
 
-      # (Array) Params of mixin
-      attr_reader :params
-      
       # (String) Content within mixin
       attr_reader :content
 
+      # (Array) Params of mixin
+      attr_reader :params
+      
       # Creates a new Mixin node
       #
       # @param (String) name Name of mixin
-      # @param (String) params Specified arguments
       # @param (String) content Content of mixin
-      def initialize(name, params, content)
+      # @param (String|Boolean) params Specified arguments
+      def initialize(name, content, params = false)
         @name = name
-        @params = get_params(params)
         @content = content
+
+        if params != false
+          @params = get_params(params)
+        end
       end
 
       # Converts string of mixin parameters to an array.

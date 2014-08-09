@@ -34,7 +34,8 @@ module Wavy
         files = Wavy::Models::Imports.get
 
         files.each do |key, value|
-          Wavy::Parsers::Mixin.defined(value.content)
+          Wavy::Parsers::Mixin.definedFunctions(value.content)
+          #Wavy::Parsers::Mixin.definedTemplates(value.content)
         end
       end
 
