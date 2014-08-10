@@ -45,14 +45,19 @@ module Wavy
           template_dir = @view
 
           Dir.glob(template_dir + "/**/*.wavy") do |template|
-            file_path = File.expand_path(template)
-            full_path = template.dup
-            full_path.slice! template_dir
-
             filename = File.basename(template)
 
-            template = FILE_IMPORTER.load(template)
-            render(template, full_path, file_path)
+            if filename[0] != "_"
+
+              file_path = File.expand_path(template)
+              full_path = template.dup
+              full_path.slice! template_dir
+
+              filename = File.basename(template)
+
+              template = FILE_IMPORTER.load(template)
+              render(template, full_path, file_path)
+            end
           end
         else
           filename = File.basename(@view)
