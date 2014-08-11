@@ -4,6 +4,80 @@ module Wavy
 
     class Mixin
 
+      # Parses all function and template mixins
+      #
+      # @param (String) data Content
+      # @param (String|Boolean) path Template path
+      #
+      # @return (String) data Parsed content
+      def self.parse(template, path = false)
+        template = parseTemplates(template, path)
+
+        return template
+      end
+
+      # Finds all included mixin functions.
+      #
+      # @param (String) data Content
+      # @param (String) path Template path
+      #
+      # @return (String) data Parsed content
+      def self.parseTemplates(template, path)
+        pattern = /(@import)\s\"(.*)\"/
+
+        indent = ""
+        template_new = ""
+
+        saved_templates = Wavy::Models::Mixins.getTemplates
+
+        template.each_line.with_index do |line, i|
+          matches = line.scan(pattern)
+
+          line = parseFunctions(line)
+
+          if matches.length > 0
+            matches.each do |match|
+              if(saved_templates["template-"+match[1]])
+                imported_file = saved_templates["template-"+match[1]]
+              else
+                Wavy::Parsers::Mixin.definedTemplate(line, path)
+                saved_templates = Wavy::Models::Mixins.getTemplates
+
+                imported_file = saved_templates["template-"+match[1]]
+              end
+
+              content = imported_file.content
+
+              find = "@import \"#{match[1]}\""
+
+              new_content = ""
+
+              current_indent = indent.dup
+              current_indent << line.slice(0..(line.index(find)))
+              current_indent[-1] = ""
+              content = parseFunctions(content)
+              content.each_line.with_index do |content_line, ii|
+                if i > 0 && ii > 0
+                  new_content << current_indent
+                end
+
+                new_content << content_line
+              end
+
+              new_line = current_indent
+              new_line << new_content
+              new_line << "\n"
+
+              line = new_line
+            end
+          end
+
+          template_new << line
+        end
+
+        return template_new
+      end
+
       # Finds all user-defined mixins.
       #
       # @param (String) data Content
@@ -28,7 +102,7 @@ module Wavy
       #
       # @param (String) content Content
       # @param (String|Boolean) path Template path
-      def self.definedTemplates(content, path = false)
+      def self.definedTemplate(content, path = false)
         pattern = /(@import)\s\"(.*)\"/
         matches = content.scan(pattern)
 
@@ -93,7 +167,7 @@ module Wavy
                           file_match = file_match[0]
 
                           content = FILE_IMPORTER.load(file_path)
-                          content = parse(content, file_path)
+                          content = parseTemplates(content, file_path)
 
                           mixin_node = Wavy::Nodes::Mixin.new(name, content, false)
 
@@ -111,19 +185,6 @@ module Wavy
             end
           end
         end
-      end
-
-      # Parses all function and template mixins
-      #
-      # @param (String) data Content
-      # @param (String|Boolean) path Template path
-      #
-      # @return (String) data Parsed content
-      def self.parse(template, path = false)
-        template = parseFunctions(template)
-        template = parseTemplates(template, path)
-
-        return template
       end
 
       # Finds all included mixin functions.
@@ -158,7 +219,7 @@ module Wavy
               end
 
               # Search for includes within mixins
-              content = parse(content)
+              content = parseFunctions(content)
 
               # Find mixin string to replace
               find = "@include #{match[1]}(#{match[2]})"
@@ -194,104 +255,7 @@ module Wavy
                 new_template << line
               end
 
-              # template.each_line.with_index do |line, i|
-              #   line.delete!("\n")
-              #   matches = line.scan(find)
-
-
-              #   if matches.length > 0
-              #     current_indent = indent.dup
-              #     current_indent << line.slice(0..(line.index(find)))
-              #     current_indent[-1] = ""
-              #     new_content = ""
-
-              #     content.each_line.with_index do |content_line, ii|
-              #       content_line.delete!("\n")
-
-              #       if ii > 0
-              #         new_content << "\n"
-              #         new_content << current_indent
-              #       end
-
-              #       new_content << content_line
-              #     end
-
-              #     line = line.gsub(find, new_content)
-              #   else
-              #     #if i > 0 
-              #       new_template << "\n"
-              #     #end
-              #   end
-
-              #   new_template << line
-              # end
-
               template = new_template
-              #template = template.gsub(find, new_content)
-            end
-          end
-        end
-
-        return template
-      end
-
-      # Finds all included mixin functions.
-      #
-      # @param (String) data Content
-      # @param (String) path Template path
-      #
-      # @return (String) data Parsed content
-      def self.parseTemplates(template, path)
-        # Search for mixin includes
-        pattern = /(@import)\s\"(.*)\"/
-        matches = template.scan(pattern)
-
-        mixins = Wavy::Models::Mixins.getTemplates
-
-        # Go through and parse each include
-        if matches.length > 0
-          matches.each do |match|
-            if(mixins["template-"+match[1]])
-
-              mixin = mixins["template-"+match[1]]
-              content = mixin.content
-
-              # Search for includes within mixins
-              content = parse(content, path)
-
-              # Find mixin string to replace
-              find = "@import \"#{match[1]}\""
-
-              indent = ""
-              new_template = ""
-              new_content = ""
-
-              template.each_line.with_index do |line, i|
-                matches = line.scan(find)
-
-                if matches.length > 0
-                  current_indent = indent.dup
-                  current_indent << line.slice(0..(line.index(find)))
-                  current_indent[-1] = ""
-
-                  content.each_line.with_index do |content_line, ii|
-                    if i > 0 && ii > 0
-                      new_content << current_indent
-                    end
-
-                    new_content << content_line
-                  end
-
-                  line = line.gsub(find, new_content)
-                end
-
-                new_template << line
-              end
-
-              template = new_template
-            else
-              Wavy::Parsers::Mixin.definedTemplates(template, path)
-              template = parseTemplates(template, path)
             end
           end
         end
