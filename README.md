@@ -12,9 +12,19 @@ Install the gem
 gem install wavy
 ```
 
+When your config and templates are ready, run
+
+```
+wavy [config] [template] [output_dir]
+```
+
+For detailed information, view the [reference documentation](http://wavy.it/docs).
+
+## Example
+
 #### Main
 
-_main.wavy
+_config.wavy
 
 ```wavy
 @import "mixins"
@@ -54,10 +64,10 @@ view.html.wavy
 
 #### Compile
 
-wavy [config] [template] [output_folder]
+wavy [config] [template] [output_dir]
 
 ```
-wavy main.wavy view.html.wavy ./
+wavy config.wavy view.html.wavy ./build
 ```
 
 #### Output
