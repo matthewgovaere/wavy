@@ -35,6 +35,23 @@ module Wavy
         load(new_name, false)
       end
 
+      def guess_indent(file)
+        i = 0
+        file.each_line.with_index {|line, i|
+          break if i > 3
+          match = /^\s+/.match(line)
+          next unless match
+          return {
+            :tab? => line.start_with?("\t"),
+            :indent => match[0].size
+          }
+        }
+        return { # returns default settings
+          :tab? => true,
+          :indent => 4
+        }
+      end
+
     end
 
   end

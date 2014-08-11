@@ -162,7 +162,45 @@ module Wavy
 
               # Find mixin string to replace
               find = "@include #{match[1]}(#{match[2]})"
-              template = template.gsub(find, content)
+
+              indent = ""
+              new_template = ""
+              new_content = ""
+
+              template.each_line.with_index do |line, i|
+                line.delete!("\n")
+                matches = line.scan(find)
+
+
+                if matches.length > 0
+                  current_indent = indent.dup
+                  current_indent << line.slice(0..(line.index(find)))
+                  current_indent[-1] = ""
+                  new_content = ""
+
+                  content.each_line.with_index do |content_line, ii|
+                    content_line.delete!("\n")
+
+                    if ii > 0
+                      new_content << "\n"
+                      new_content << current_indent
+                    end
+
+                    new_content << content_line
+                  end
+
+                  line = line.gsub(find, new_content)
+                else
+                  #if i > 0 
+                    new_template << "\n"
+                  #end
+                end
+
+                new_template << line
+              end
+
+              template = new_template
+              #template = template.gsub(find, new_content)
             end
           end
         end
@@ -196,7 +234,36 @@ module Wavy
 
               # Find mixin string to replace
               find = "@import \"#{match[1]}\""
-              template = template.gsub(find, content)
+
+              indent = ""
+              new_template = ""
+              new_content = ""
+
+              template.each_line.with_index do |line, i|
+                matches = line.scan(find)
+
+                if matches.length > 0
+                  current_indent = indent.dup
+                  current_indent << line.slice(0..(line.index(find)))
+                  current_indent[-1] = ""
+
+                  new_content = ""
+
+                  content.each_line.with_index do |content_line, ii|
+                    if i > 0 && ii > 0
+                      new_content << current_indent
+                    end
+
+                    new_content << content_line
+                  end
+
+                  line = line.gsub(find, new_content)
+                end
+                previous_line = line
+                new_template << line
+              end
+
+              template = new_template
             else
               Wavy::Parsers::Mixin.definedTemplates(template, path)
               template = parseTemplates(template, path)
