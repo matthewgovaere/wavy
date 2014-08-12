@@ -55,7 +55,9 @@ module Wavy
               current_indent = indent.dup
               current_indent << line.slice(0..(line.index(find)))
               current_indent[-1] = ""
+
               content = parseFunctions(content)
+
               content.each_line.with_index do |content_line, ii|
                 if i > 0 && ii > 0
                   new_content << current_indent
@@ -238,10 +240,21 @@ module Wavy
 
                   line.delete!("\n")
 
+                  content_tab_length = 0
+
                   content.each_line.with_index do |content_line, ii|
+                    matchesx = content_line.scan(/^(\s*|\t*)\S/)
 
                     if ii > 1
                       new_content << current_indent
+                    end
+
+                    if ii == 1 && matchesx[0] && matchesx[0][0]
+                      content_tab_length = matchesx[0][0].length
+                    end
+
+                    if matchesx[0] && matchesx[0][0] && matchesx[0][0].length >= content_tab_length
+                      content_line.slice!(0, content_tab_length)
                     end
 
                     if ii > 0
