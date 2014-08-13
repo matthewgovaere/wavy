@@ -56,11 +56,22 @@ module Wavy
               current_indent << line.slice(0..(line.index(find)))
               current_indent[-1] = ""
 
+              same_line = false
+              
+              if current_indent.strip.empty? == false
+                same_line = true
+              end
+
               content = parseFunctions(content)
 
               content.each_line.with_index do |content_line, ii|
-                if i > 0 && ii > 0
-                  new_content << current_indent
+                if same_line == true
+                  content_line = content_line.strip
+                  content_line.delete!("\n")
+                else
+                  if i > 0 && ii > 0
+                    new_content << current_indent
+                  end
                 end
 
                 new_content << content_line
@@ -240,26 +251,42 @@ module Wavy
 
                   line.delete!("\n")
 
+                  same_line = false
+
+                  if current_indent.strip.empty? == false
+                    same_line = true
+                  end
+
                   content_tab_length = 0
 
                   content.each_line.with_index do |content_line, ii|
-                    matchesx = content_line.scan(/^(\s*|\t*)\S/)
+                    match_indent = content_line.scan(/^(\s*|\t*)\S/)
 
-                    if ii > 1
-                      new_content << current_indent
-                    end
+                    if same_line == true
+                      content_line = content_line.strip
+                      content_line.delete!("\n")
+                    else
+                      if ii > 1 && same_line == false
+                        new_content << current_indent
+                      end
 
-                    if ii == 1 && matchesx[0] && matchesx[0][0]
-                      content_tab_length = matchesx[0][0].length
-                    end
+                      if ii == 1 && match_indent[0] && match_indent[0][0]
+                        content_tab_length = match_indent[0][0].length
+                      end
 
-                    if matchesx[0] && matchesx[0][0] && matchesx[0][0].length >= content_tab_length
-                      content_line.slice!(0, content_tab_length)
+                      if match_indent[0] && match_indent[0][0] && match_indent[0][0].length >= content_tab_length
+                        content_line.slice!(0, content_tab_length)
+                      end
+
                     end
 
                     if ii > 0
                       new_content << content_line
                     end
+                  end
+
+                  if same_line == true && i == (template.lines.count-1)
+                    line << "\n"
                   end
 
                   line = line.gsub(find, new_content)
