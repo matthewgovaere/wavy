@@ -6,12 +6,12 @@ Gem::Specification.new do |s|
   s.name          = 'wavy'
   s.version       = Wavy::VERSION
 
-  s.summary       = "A simple templating engine for preprocessing HTML."
-  s.description   = "Wavy is a simple templating engine for HTML – Inspired By Sass"
-
   s.authors       = ["Matthew Govaere"]
   s.email         = 'matthew.govaere@gmail.com'
   s.homepage      = 'http://wavy.it'
+
+  s.summary       = "A simple templating engine for HTML – Inspired By Sass"
+  s.description   = "Wavy is a templating engine for preprocessing HTML, heavily influenced by the simplicity of Sass. Think Sass for HTML."
 
   s.files         = Dir["lib/**/*"]
   s.executables   = ['wavy']
