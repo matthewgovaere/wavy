@@ -30,16 +30,17 @@ module Wavy
         else
           config = args[0]
 
-          if args[1]
+          if args[1] && args[2]
             view = args[1]
-          else
-            raise 'Missing template.'
-          end
-
-          if !args[2]
-            save = false
-          else
             save = args[2]
+          else
+            #raise 'Missing template.'
+            view = false
+            if args[1]
+              save = args[1]
+            else
+              save = false
+            end
           end
 
           compile(config, view, save)

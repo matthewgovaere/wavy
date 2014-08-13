@@ -9,4 +9,5 @@ module Wavy
 end
 
 require 'wavy/parsers/import'
+require 'wavy/parsers/export'
 require 'wavy/parsers/mixin'

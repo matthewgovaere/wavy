@@ -41,28 +41,59 @@ module Wavy
         Wavy::Parsers::Import.load(@config, @config_root)
         Wavy::Parsers::Import.extract
 
-        if File.directory?(@view)
-          template_dir = @view
+        if @view == false
+          exports = Wavy::Models::Exports.get
 
-          Dir.glob(template_dir + "/**/*.wavy") do |template|
-            filename = File.basename(template)
+          exports.each do |key, export|
 
-            if filename[0] != "_"
+            if File.directory?(export.path)
+              template_dir = export.path
 
-              file_path = File.expand_path(template)
-              full_path = template.dup
-              full_path.slice! template_dir
+              Dir.glob(template_dir + "/**/*.wavy") do |template|
+                filename = File.basename(template)
 
-              filename = File.basename(template)
+                if filename[0] != "_"
 
-              template = FILE_IMPORTER.load(template)
-              render(template, full_path, file_path)
+                  file_path = File.expand_path(template)
+                  full_path = template.dup
+                  full_path.slice! template_dir
+
+                  filename = File.basename(template)
+
+                  template = FILE_IMPORTER.load(template)
+                  render(template, full_path, file_path)
+                end
+              end
+            else
+              filename = File.basename(export.path)
+              template = FILE_IMPORTER.load(export.path)
+              render(template, filename, export.path)
             end
           end
         else
-          filename = File.basename(@view)
-          template = FILE_IMPORTER.load(@view)
-          render(template, filename, @view)
+          if File.directory?(@view)
+            template_dir = @view
+
+            Dir.glob(template_dir + "/**/*.wavy") do |template|
+              filename = File.basename(template)
+
+              if filename[0] != "_"
+
+                file_path = File.expand_path(template)
+                full_path = template.dup
+                full_path.slice! template_dir
+
+                filename = File.basename(template)
+
+                template = FILE_IMPORTER.load(template)
+                render(template, full_path, file_path)
+              end
+            end
+          else
+            filename = File.basename(@view)
+            template = FILE_IMPORTER.load(@view)
+            render(template, filename, @view)
+          end
         end
 
       rescue Exception => e

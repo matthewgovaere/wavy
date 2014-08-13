@@ -6,3 +6,4 @@ end
 require 'wavy/models/imports'
 require 'wavy/models/mixins'
 require 'wavy/models/template'
+require 'wavy/models/exports'

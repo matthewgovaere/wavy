@@ -11,6 +11,8 @@ module Wavy
       def self.load(content, root)
         pattern = /^(@import)\s\"(.*)\"/
         matches = content.scan(pattern)
+        
+        Wavy::Parsers::Export.load(content, root)
 
         if matches.length > 0
           matches.each do |match|

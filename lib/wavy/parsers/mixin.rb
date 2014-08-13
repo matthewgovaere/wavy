@@ -200,6 +200,95 @@ module Wavy
         end
       end
 
+      # Finds all user-defined mixins.
+      #
+      # @param (String) content Content
+      # @param (String|Boolean) path Template path
+      def self.definedConfigTemplate(content, path = false)
+        pattern = /(@export)\s\"(.*)\"/
+        matches = content.scan(pattern)
+
+        if matches.length > 0
+          matches.each do |match|
+            file = match[1]
+
+            name = "template-" + file
+
+            if path != false
+              base_dir = File.expand_path(File.dirname(path))
+              file_base_dir = File.expand_path(path)
+              full_filename = base_dir + "/" + file
+
+              # Check if full filename was included
+              if File.file?(full_filename)
+
+                content = FILE_IMPORTER.load(base_dir + "/" + file)
+                content = parse(content, path)
+                mixin_node = Wavy::Nodes::Mixin.new(name, content, false)
+
+                Wavy::Models::Mixins.addTemplate(name, mixin_node)
+              else
+                imported_path_file = File.basename(file)
+
+                if imported_path_file[0] == "_"
+                  imported_path_file[0] = ""
+                else
+                  imported_path_file = file
+                end
+  
+                file_pattern = /(#{imported_path_file})\..*/
+                file_dir = file.scan(/(.*)\//)
+                file_contains_paths = file.include? '/'
+
+                if file_dir[0] || file_contains_paths == false
+                  if file_dir[0]
+                    dir_check_path = base_dir + "/" + file_dir[0][0] + "/*"
+                  else
+                    dir_check_path = base_dir + "/*"
+                  end
+
+                  directory_check = Dir.glob(dir_check_path)
+
+                  if directory_check.length > 0
+
+                    Dir.glob(dir_check_path) do |file_path|
+                      filename = File.basename(file_path)
+                      
+                      if filename[0] == "_"
+                        filename[0] = ""
+
+                        check_file_path = File.dirname(file_path) + "/" + filename
+                      else
+                        check_file_path = File.dirname(file_path) + "/" + filename
+                      end
+
+                      file_matches = check_file_path.scan(file_pattern)
+
+                      if file_matches.length > 0
+                        file_matches.each do |file_match|
+                          file_match = file_match[0]
+
+                          content = FILE_IMPORTER.load(file_path)
+                          content = parseTemplates(content, file_path)
+
+                          mixin_node = Wavy::Nodes::Mixin.new(name, content, false)
+
+                          Wavy::Models::Mixins.addTemplate(name, mixin_node)
+                        end
+                      end
+                    end
+                  else
+                    raise "Could not find imported template A: " + file + "\n   From: " + path
+                  end
+                else
+                  raise "Could not find imported template B: " + path
+                end
+              end
+            end
+          end
+        end
+      end
+
       # Finds all included mixin functions.
       #
       # @param (String) template Content
