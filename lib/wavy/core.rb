@@ -43,61 +43,53 @@ module Wavy
 
         if @view == false
           exports = Wavy::Models::Exports.get
-
           exports.each do |key, export|
-
-            if File.directory?(export.path)
-              template_dir = export.path
-
-              Dir.glob(template_dir + "/**/*.wavy") do |template|
-                filename = File.basename(template)
-
-                if filename[0] != "_"
-
-                  file_path = File.expand_path(template)
-                  full_path = template.dup
-                  full_path.slice! template_dir
-
-                  filename = File.basename(template)
-
-                  template = FILE_IMPORTER.load(template)
-                  render(template, full_path, file_path)
-                end
-              end
-            else
-              filename = File.basename(export.path)
-              template = FILE_IMPORTER.load(export.path)
-              render(template, filename, export.path)
-            end
+            rendered = self.class.render(export.path)
+            output(rendered['template'], rendered['full_path'], rendered['file_path'])
           end
         else
-          if File.directory?(@view)
-            template_dir = @view
-
-            Dir.glob(template_dir + "/**/*.wavy") do |template|
-              filename = File.basename(template)
-
-              if filename[0] != "_"
-
-                file_path = File.expand_path(template)
-                full_path = template.dup
-                full_path.slice! template_dir
-
-                filename = File.basename(template)
-
-                template = FILE_IMPORTER.load(template)
-                render(template, full_path, file_path)
-              end
-            end
-          else
-            filename = File.basename(@view)
-            template = FILE_IMPORTER.load(@view)
-            render(template, filename, @view)
-          end
+          rendered = self.class.render(@view)
+          output(rendered['template'], rendered['full_path'], rendered['file_path'])
         end
 
       rescue Exception => e
         puts e.message
+      end
+    end
+
+    def self.render(view)
+      if File.directory?(view)
+        template_dir = view
+
+        Dir.glob(template_dir + "/**/*.wavy") do |template|
+          filename = File.basename(template)
+
+          if filename[0] != "_"
+
+            file_path = File.expand_path(template)
+            full_path = template.dup
+            full_path.slice! template_dir
+
+            filename = File.basename(template)
+
+            template = FILE_IMPORTER.load(template)
+
+            return {
+              'template' => template,
+              'full_path' => full_path,
+              'file_path' => file_path
+            }
+          end
+        end
+      else
+        filename = File.basename(view)
+        template = FILE_IMPORTER.load(view)
+
+        return {
+          'template' => template,
+          'full_path' => filename,
+          'file_path' => view
+        }
       end
     end
 
@@ -106,8 +98,8 @@ module Wavy
     # @param (String) view Content of the template
     # @param (String) filename The path and filename of the template
     # @param (String) path Path to where the templates should be saved
-    def render(view, filename, path)
-      output = Wavy::Models::Template.new(view, path).parse
+    def output(view, filename, path)
+      result = Wavy::Models::Template.new(view, path).parse
 
       if @save != false
         file_path = filename.gsub("#{FILE_SUFFIX}", "")
@@ -134,7 +126,7 @@ module Wavy
             end
 
             file = File.open(path, "w")
-            file.write(output) 
+            file.write(result) 
           rescue IOError => e
             raise 'Could not save file.'
           ensure
@@ -142,7 +134,7 @@ module Wavy
           end
         end
       else
-        puts output
+        puts result
       end
     end
 

@@ -1,0 +1,4 @@
+<div class="nested partial">
+    <span>Nested Partial</span>
+    @import "sub/sub"
+</div>

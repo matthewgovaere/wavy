@@ -40,7 +40,7 @@ module Wavy
               if(saved_templates["template-"+match[1]])
                 imported_file = saved_templates["template-"+match[1]]
               else
-                Wavy::Parsers::Mixin.definedTemplate(line, path)
+                definedTemplate(line, path)
                 saved_templates = Wavy::Models::Mixins.getTemplates
 
                 imported_file = saved_templates["template-"+match[1]]
@@ -79,8 +79,11 @@ module Wavy
 
               new_line = current_indent
               new_line << new_content
-              new_line << "\n"
 
+              if i < (template.lines.count-1) 
+                new_line << "\n"
+              end
+            
               line = new_line
             end
           end

@@ -1,0 +1,13 @@
+<div class="complex">
+    @import "basic"
+
+    <div class="container">
+        <div class="one">
+            @import "nested/partial_with_sub"
+        </div>
+        <div class="two">
+            @import "nested/nested_parent"
+            @import "nested/sub"
+        </div>
+    </div>
+</div>
